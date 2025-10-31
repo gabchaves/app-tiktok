@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "app-tiktok"
+version = "0.1.0"
+description = "Aplicativo para análise de temas do TikTok usando Gemini AI"
+authors = ["Your Name"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pyautogui = "^0.9.54"
+pyperclip = "^1.11.0"
+google-generativeai = "^0.8.5"
+xlsxwriter = "^3.2.9"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
