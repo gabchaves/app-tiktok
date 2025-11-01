@@ -1,9 +1,11 @@
-import openpyxl
 from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill
 import os
 import google.generativeai as genai
 from datetime import datetime
+
+# API Key do Gemini
+GEMINI_API_KEY = "AIzaSyDZ_6FweRyBza_TuiWQ1W9zgubhfzHqRyY"
 
 class RoteiroGenerator:
     def __init__(self, planilha_path='planilha_temas.xlsx'):
@@ -49,16 +51,9 @@ class RoteiroGenerator:
             return False
 
     def _gerar_roteiro(self, tema, descricao):
-        """Gera um roteiro para vídeo usando Gemini AI."""
-        GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-        
-        if not GEMINI_API_KEY:
-            print("❌ Erro: GEMINI_API_KEY não foi definida.")
-            return None
-        
         try:
             genai.configure(api_key=GEMINI_API_KEY)
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             
             prompt = f"""Você é um roteirista especializado em vídeos virais curtos para TikTok, Instagram Reels e YouTube Shorts. Sua missão é criar roteiros com alto potencial de retenção e engajamento, baseados no estilo narrativo de vídeos misteriosos, jornalísticos ou emocionais, com estrutura de impacto, ritmo fluido e linguagem natural.
 
@@ -125,16 +120,13 @@ Retorne apenas o roteiro final pronto para narração, sem explicações adicion
             return None
 
     def _atualizar_status_video(self, row_index):
-        """Atualiza as colunas 'Video Pronto' e 'Data' para a linha especificada."""
         try:
-            # Coluna E - Video Pronto
             self.worksheet.cell(row=row_index, column=5, value="OK")
-            # Coluna G - Data
             self.worksheet.cell(row=row_index, column=7, value=datetime.now().strftime("%Y-%m-%d"))
             self.workbook.save(self.planilha_path)
-            print(f"✅ Status do vídeo atualizado na linha {row_index}.")
+            print(f"✅ Status atualizado na linha {row_index}.")
         except Exception as e:
-            print(f"❌ Erro ao atualizar status do vídeo: {e}")
+            print(f"❌ Erro ao atualizar status: {e}")
 
     def processar_primeiro_tema(self):
         """Pega o primeiro tema da planilha que ainda não foi processado, gera o roteiro e atualiza o status."""
@@ -145,7 +137,6 @@ Retorne apenas o roteiro final pronto para narração, sem explicações adicion
             print("⚠️ Nenhum tema encontrado na planilha.")
             return None
 
-        # Itera sobre as linhas para encontrar o primeiro tema sem roteiro
         for row in range(2, self.worksheet.max_row + 1):
             roteiro_atual = self.worksheet.cell(row, 4).value
             video_pronto = self.worksheet.cell(row, 5).value
@@ -175,7 +166,6 @@ Retorne apenas o roteiro final pronto para narração, sem explicações adicion
                     print(roteiro)
                     print("--- Fim do Roteiro ---")
                     
-                    # Retorna a última linha do roteiro
                     return roteiro.splitlines()[-1]
                 else:
                     print("❌ Não foi possível gerar o roteiro.")
@@ -185,11 +175,15 @@ Retorne apenas o roteiro final pronto para narração, sem explicações adicion
         return None
 
 
-if __name__ == "__main__":
+def main():
     print("🎬 Video Creator - Gerando roteiro...")
     generator = RoteiroGenerator()
-    ultima_linha = generator.processar_primeiro_tema()
-    if ultima_linha:
-        print(f"\n✅ Processo concluído! Última linha do roteiro: '{ultima_linha}'")
+    resultado = generator.processar_primeiro_tema()
+    if resultado:
+        print(f"\n✅ Processo concluído! Última linha: '{resultado}'")
     else:
         print("\n⚠️ Não foi possível processar nenhum tema.")
+
+
+if __name__ == "__main__":
+    main()
