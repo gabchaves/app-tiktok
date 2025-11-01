@@ -64,29 +64,21 @@ if roteiro:
     teclado.hotkey('win', 'r')
     teclado.typewrite('https://www.capcut.com/ai-creator/start')
     teclado.press('enter')
-    teclado.sleep(5)
-    teclado.click(x=298, y=487)
-    teclado.sleep(5)
-    teclado.click(x=1043, y=492)
-    teclado.sleep(5)
-    teclado.click(x=1080, y=553)
-    teclado.sleep(5)
-    teclado.click(x=1022, y=610)
-    teclado.sleep(5)
+    teclado.sleep(10)
+    teclado.click(x=1092, y=329)
+    teclado.hotkey('ctrl', 'a')
     
     # Cola o roteiro (Ctrl+V)
     teclado.hotkey('ctrl', 'v')
     teclado.sleep(2)  # Aguarda um pouco após colar
-    
-    # Marca Video Pronto como OK e preenche a data
-    marcar_video_pronto(workbook, worksheet, linha)
-    
-    teclado.press('tab')
+    teclado.click(x=1026, y=383)
     teclado.press('tab')
     teclado.press('enter')
-    teclado.sleep(120)
+    teclado.sleep(100)
     teclado.click(x=1042, y=153)
     
+# Marca Video Pronto como OK e preenche a data
+    marcar_video_pronto(workbook, worksheet, linha)
 
     print("✅ Processo concluído!")
 else:

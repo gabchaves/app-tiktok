@@ -10,8 +10,92 @@ from openpyxl.styles import Font, PatternFill
 import os
 
 
+def ler_temas_existentes(arquivo_planilha):
+    """Lê todos os temas já existentes na planilha para evitar duplicatas."""
+    temas_existentes = set()
+    
+    if not os.path.exists(arquivo_planilha):
+        return temas_existentes
+    
+    try:
+        workbook = load_workbook(arquivo_planilha)
+        worksheet = workbook.active
+        
+        # Pula a linha de cabeçalho (linha 1)
+        for row in range(2, worksheet.max_row + 1):
+            tema = worksheet.cell(row, 1).value
+            if tema and isinstance(tema, str):
+                # Normaliza o tema para comparação (minúsculas, remove espaços extras)
+                tema_normalizado = tema.lower().strip()
+                temas_existentes.add(tema_normalizado)
+        
+        return temas_existentes
+    except Exception as e:
+        print(f"⚠️ Erro ao ler temas existentes: {e}")
+        return temas_existentes
+
+
+def temas_sao_similares(tema1, tema2):
+    """Verifica se dois temas são muito similares (evita duplicatas com pequenas variações)."""
+    t1 = tema1.lower().strip()
+    t2 = tema2.lower().strip()
+    
+    # Se forem idênticos após normalização
+    if t1 == t2:
+        return True
+    
+    # Se um contém o outro (com diferença mínima)
+    palavras_t1 = set(t1.split())
+    palavras_t2 = set(t2.split())
+    
+    # Se compartilham mais de 70% das palavras principais (palavras com mais de 3 caracteres)
+    palavras_principais_t1 = {p for p in palavras_t1 if len(p) > 3}
+    palavras_principais_t2 = {p for p in palavras_t2 if len(p) > 3}
+    
+    if palavras_principais_t1 and palavras_principais_t2:
+        palavras_comuns = palavras_principais_t1 & palavras_principais_t2
+        todas_palavras = palavras_principais_t1 | palavras_principais_t2
+        if todas_palavras and len(palavras_comuns) / len(todas_palavras) > 0.7:
+            return True
+    
+    return False
+
+
+def filtrar_temas_repetidos(temas_novos, temas_existentes):
+    """Filtra temas que já existem ou são muito similares aos existentes."""
+    temas_filtrados = []
+    
+    for tema_obj in temas_novos:
+        if not isinstance(tema_obj, dict):
+            continue
+            
+        tema_nome = tema_obj.get('tema', tema_obj.get('Tema', ''))
+        if not tema_nome:
+            continue
+        
+        tema_normalizado = tema_nome.lower().strip()
+        
+        # Verifica se é duplicata exata
+        if tema_normalizado in temas_existentes:
+            print(f"⚠️ Tema duplicado ignorado: '{tema_nome}'")
+            continue
+        
+        # Verifica se é similar a algum tema existente
+        eh_similar = False
+        for tema_existente in temas_existentes:
+            if temas_sao_similares(tema_nome, tema_existente):
+                print(f"⚠️ Tema similar ignorado: '{tema_nome}' (similar a '{tema_existente}')")
+                eh_similar = True
+                break
+        
+        if not eh_similar:
+            temas_filtrados.append(tema_obj)
+    
+    return temas_filtrados
+
+
 def salvar_planilha(response_text):
-    """Adiciona os temas extraídos à planilha Excel existente ou cria uma nova."""
+    """Adiciona os temas extraídos à planilha Excel existente ou cria uma nova, evitando duplicatas."""
     try:
         # Extrai JSON do texto (remove markdown code blocks se existirem)
         texto_limpo = response_text.strip()
@@ -29,6 +113,20 @@ def salvar_planilha(response_text):
             return
         
         arquivo_planilha = 'planilha_temas.xlsx'
+        
+        # Lê temas existentes para evitar duplicatas
+        temas_existentes = ler_temas_existentes(arquivo_planilha)
+        print(f"📋 Encontrados {len(temas_existentes)} tema(s) existente(s) na planilha.")
+        
+        # Filtra temas repetidos
+        temas_filtrados = filtrar_temas_repetidos(temas, temas_existentes)
+        
+        if not temas_filtrados:
+            print("⚠️ Todos os temas gerados já existem na planilha. Nenhum novo tema será adicionado.")
+            return
+        
+        print(f"✅ {len(temas_filtrados)} tema(s) novo(s) serão adicionados (de {len(temas)} tema(s) gerado(s)).")
+        
         headers = ['Tema', 'Descrição', 'Relevância', 'Roteiro', 'Video Pronto', 'Video Postado', 'Data']
         
         # Verifica se o arquivo existe
@@ -60,10 +158,11 @@ def salvar_planilha(response_text):
             
             proxima_linha = 2
         
-        # Adiciona os novos temas
-        for tema in temas:
+        # Adiciona apenas os novos temas (já filtrados)
+        for tema in temas_filtrados:
             if isinstance(tema, dict):
-                worksheet.cell(proxima_linha, 1, tema.get('tema', tema.get('Tema', '')))
+                tema_nome = tema.get('tema', tema.get('Tema', ''))
+                worksheet.cell(proxima_linha, 1, tema_nome)
                 worksheet.cell(proxima_linha, 2, tema.get('descricao', tema.get('Descrição', '')))
                 worksheet.cell(proxima_linha, 3, tema.get('relevancia', tema.get('Relevância', '')))
                 # Deixa Roteiro, Video Pronto, Video Postado e Data em branco
@@ -83,7 +182,7 @@ def salvar_planilha(response_text):
         worksheet.column_dimensions['G'].width = 12  # Data
         
         workbook.save(arquivo_planilha)
-        print(f"\n✅ Planilha atualizada com sucesso! ({len(temas)} tema(s) adicionado(s))")
+        print(f"\n✅ Planilha atualizada com sucesso! ({len(temas_filtrados)} tema(s) adicionado(s))")
         
     except json.JSONDecodeError as e:
         print(f"❌ Erro ao fazer parse do JSON: {e}")
@@ -121,15 +220,28 @@ else:
         genai.configure(api_key=GEMINI_API_KEY)
         model = genai.GenerativeModel('gemini-2.5-flash')
 
-        prompt = f"""Analise o texto a seguir e identifique os 3 temas mais relevantes.
+        prompt = f"""Analise o texto a seguir e identifique os 3 temas mais relevantes para criação de vídeos virais no TikTok.
 Retorne a resposta em formato JSON, com a seguinte estrutura:
 {{
   "top_themes": [
-    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baja"}},
-    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baja"}},
-    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baja"}}
+    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baixa"}},
+    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baixa"}},
+    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baixa"}}
   ]
 }}
+
+📋 INSTRUÇÕES PARA AS DESCRIÇÕES:
+Cada descrição deve ser um texto de 2 a 4 frases que contenha:
+- Um gancho inicial forte (elemento chocante, curioso ou emocional)
+- Detalhes específicos que ajudem na criação do roteiro (fatos, números, eventos, personagens, locais, datas)
+- Indicação de elementos visuais ou emocionais que tornam o tema viral (mistério, tensão, reviravolta, emoção, curiosidade)
+- Contexto suficiente para um roteirista criar um vídeo envolvente
+
+💡 Exemplo de descrição BOA:
+"Em 2015, um avião desapareceu sem deixar rastros no meio do oceano. A investigação revelou que todos os passageiros sumiram antes do pouso, deixando apenas objetos pessoais. O mistério nunca foi resolvido, alimentando teorias sobre dimensões paralelas e sequestros extraterrestres. Este caso desperta medo, curiosidade e debate, elementos perfeitos para um vídeo viral."
+
+❌ Exemplo de descrição RUIM (muito genérica):
+"Um avião desapareceu e gerou mistério sobre o que aconteceu."
 
 Texto para análise:
 ---
