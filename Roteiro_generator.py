@@ -160,7 +160,7 @@ Retorne apenas o roteiro final pronto para narração, sem explicações adicion
                     self.workbook.save(self.planilha_path)
                     print(f"\n✅ Roteiro salvo na planilha na linha {row}!")
                     
-                    self._atualizar_status_video(row)
+                    # Video Pronto e Data serão atualizados apenas no Video_generator.py
 
                     print(f"\n--- Roteiro Gerado ---")
                     print(roteiro)
