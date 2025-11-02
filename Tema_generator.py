@@ -190,34 +190,59 @@ def salvar_planilha(response_text):
         print(f"❌ Erro ao salvar planilha: {e}")
 
 
-# Abre TikTok Studio
-url = 'https://www.tiktok.com/tiktokstudio/inspiration'
-webbrowser.open(url)
-time.sleep(10)
-
-# Navega até o conteúdo
-for _ in range(28):
-    pyautogui.press('tab')
-    time.sleep(0.2)
-
-pyautogui.press('enter')
-time.sleep(2)
-
-# Copia o conteúdo
-pyautogui.hotkey('ctrl', 'a')
-pyautogui.hotkey('ctrl', 'c')
-time.sleep(0.5)
-
-conteudo = pyperclip.paste()
-
-# Configura e usa API do Gemini
-GEMINI_API_KEY = "AIzaSyDZ_6FweRyBza_TuiWQ1W9zgubhfzHqRyY"
-
-if not GEMINI_API_KEY:
-    print("❌ Erro: GEMINI_API_KEY não foi definida.")
-else:
+def gerar_temas_tiktok_studio(tipo_tema='atualidades', api_key=None):
+    """
+    Gera temas usando o TikTok Studio.
+    
+    Args:
+        tipo_tema: 'atualidades' ou 'terror'
+        api_key: Chave da API do Gemini. Se None, usa a chave hardcoded.
+    
+    Returns:
+        bool: True se os temas foram gerados com sucesso, False caso contrário.
+    """
+    # Define número de tabs baseado no tipo
+    if tipo_tema == 'atualidades':
+        numero_tabs = 16
+    elif tipo_tema == 'terror':
+        numero_tabs = 28
+    else:
+        print(f"⚠️ Tipo de tema desconhecido: {tipo_tema}. Usando 'atualidades'.")
+        tipo_tema = 'atualidades'
+        numero_tabs = 16
+    
+    print(f"\n✅ Buscando temas de {tipo_tema}...")
+    
+    # Configura API Key
+    if api_key is None:
+        api_key = "AIzaSyDZ_6FweRyBza_TuiWQ1W9zgubhfzHqRyY"
+    
+    if not api_key:
+        print("❌ Erro: GEMINI_API_KEY não foi definida.")
+        return False
+    
     try:
-        genai.configure(api_key=GEMINI_API_KEY)
+        # Abre TikTok Studio
+        url = 'https://www.tiktok.com/tiktokstudio/inspiration'
+        webbrowser.open(url)
+        time.sleep(10)
+
+        # Navega até o conteúdo
+        for _ in range(numero_tabs):
+            pyautogui.press('tab')
+
+        pyautogui.press('enter')
+        time.sleep(2)
+
+        # Copia o conteúdo
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.hotkey('ctrl', 'c')
+        time.sleep(0.5)
+
+        conteudo = pyperclip.paste()
+        
+        # Configura e usa API do Gemini
+        genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
 
         prompt = f"""Analise o texto a seguir e identifique os 3 temas mais relevantes para criação de vídeos virais no TikTok.
@@ -256,12 +281,33 @@ Texto para análise:
         print("--- Fim da Análise ---\n")
 
         salvar_planilha(response.text)
+        return True
 
     except Exception as e:
         if "API key" in str(e):
             print("❌ Erro de autenticação com a API do Gemini. Verifique sua API Key.")
         else:
             print(f"❌ Erro ao usar a API do Gemini: {e}")
+        return False
 
-print("\n✅ Processo concluído.")
+
+# Código principal para execução direta do script
+if __name__ == "__main__":
+    # Pergunta qual tipo de tema o usuário deseja
+    print("\n🔍 Escolha o tipo de tema:")
+    print("1 - Atualidades")
+    print("2 - Terror")
+    escolha = input("Digite o número da opção: ").strip()
+
+    while escolha not in ['1', '2']:
+        print("⚠️ Opção inválida. Digite 1 para Atualidades ou 2 para Terror.")
+        escolha = input("Digite o número da opção: ").strip()
+
+    if escolha == '1':
+        tipo_tema = "atualidades"
+    else:
+        tipo_tema = "terror"
+
+    gerar_temas_tiktok_studio(tipo_tema)
+    print("\n✅ Processo concluído.")
 

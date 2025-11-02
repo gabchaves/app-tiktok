@@ -74,8 +74,9 @@ if roteiro:
     teclado.click(x=1026, y=383)
     teclado.press('tab')
     teclado.press('enter')
-    teclado.sleep(100)
+    teclado.sleep(120)
     teclado.click(x=1042, y=153)
+    teclado.sleep(10)
     
 # Marca Video Pronto como OK e preenche a data
     marcar_video_pronto(workbook, worksheet, linha)
