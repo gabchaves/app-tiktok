@@ -197,16 +197,16 @@ def gerar_temas_automaticos(quantidade):
         for lote in range(lotes):
             print(f"\n🤖 Gerando lote {lote + 1} de {lotes}...")
             
-            prompt = f"""Gere 3 temas relevantes para criação de vídeos virais no TikTok, Instagram Reels e YouTube Shorts.
+            prompt = """Gere 3 temas relevantes para criação de vídeos virais no TikTok, Instagram Reels e YouTube Shorts.
 Os temas devem ser sobre mistérios, histórias reais, teorias interessantes, fatos chocantes, ou eventos misteriosos.
 Retorne a resposta em formato JSON, com a seguinte estrutura:
-{{
+{
   "top_themes": [
-    {{"tema": "nome do tema", "descricao": "explicação detalhada", "relevancia": "alta|média|baixa"}},
-    {{"tema": "nome do tema", "descricao": "explicação detalhada", "relevancia": "alta|média|baixa"}},
-    {{"tema": "nome do tema", "descricao": "explicação detalhada", "relevancia": "alta|média|baixa"}}
+    {"tema": "nome do tema", "descricao": "explicação detalhada", "relevancia": "alta|média|baixa"},
+    {"tema": "nome do tema", "descricao": "explicação detalhada", "relevancia": "alta|média|baixa"},
+    {"tema": "nome do tema", "descricao": "explicação detalhada", "relevancia": "alta|média|baixa"}
   ]
-}}
+}
 
 📋 INSTRUÇÕES PARA AS DESCRIÇÕES:
 Cada descrição deve ser um texto de 2 a 4 frases que contenha:
@@ -461,6 +461,7 @@ def gerar_video():
         teclado.press('enter')
         time.sleep(100)
         teclado.click(x=1042, y=153)
+        time.sleep(10)
         
         # Marca como pronto
         marcar_video_pronto(workbook, worksheet, linha)

@@ -226,6 +226,10 @@ def gerar_temas_tiktok_studio(tipo_tema='atualidades', api_key=None):
         url = 'https://www.tiktok.com/tiktokstudio/inspiration'
         webbrowser.open(url)
         time.sleep(10)
+        pyautogui.click(x=1212, y=229)
+        pyautogui.sleep(4)
+        pyautogui.click(x=1184, y=522)
+        pyautogui.sleep(5)
 
         # Navega até o conteúdo
         for _ in range(numero_tabs):
@@ -245,28 +249,29 @@ def gerar_temas_tiktok_studio(tipo_tema='atualidades', api_key=None):
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
 
-        prompt = f"""Analise o texto a seguir e identifique os 3 temas mais relevantes para criação de vídeos virais no TikTok.
-Retorne a resposta em formato JSON, com a seguinte estrutura:
+        prompt = f"""Analise o texto a seguir (copiado da página de Inspiração do TikTok Studio) e identifique exatamente os 3 TÓPICOS mais relevantes.
+
+REGRA CRÍTICA PARA O CAMPO "tema":
+- O valor de "tema" DEVE SER COPIADO LITERALMENTE de como aparece no texto do TikTok.
+- NÃO traduzir, NÃO resumir, NÃO reescrever, NÃO adicionar emojis/hashtags.
+- Preservar exatamente acentuação, maiúsculas/minúsculas e pontuação do título exibido.
+- O "tema" precisa existir no texto de entrada. Não invente nomes.
+
+Formato de saída (retorne somente o JSON, sem texto extra):
 {{
   "top_themes": [
-    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baixa"}},
-    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baixa"}},
-    {{"tema": "nome do tema", "descricao": "explicação", "relevancia": "alta|média|baixa"}}
+    {{"tema": "TÍTULO EXATO DO TÓPICO", "descricao": "explicação", "relevancia": "alta|média|baixa"}},
+    {{"tema": "TÍTULO EXATO DO TÓPICO", "descricao": "explicação", "relevancia": "alta|média|baixa"}},
+    {{"tema": "TÍTULO EXATO DO TÓPICO", "descricao": "explicação", "relevancia": "alta|média|baixa"}}
   ]
 }}
 
 📋 INSTRUÇÕES PARA AS DESCRIÇÕES:
-Cada descrição deve ser um texto de 2 a 4 frases que contenha:
-- Um gancho inicial forte (elemento chocante, curioso ou emocional)
-- Detalhes específicos que ajudem na criação do roteiro (fatos, números, eventos, personagens, locais, datas)
-- Indicação de elementos visuais ou emocionais que tornam o tema viral (mistério, tensão, reviravolta, emoção, curiosidade)
-- Contexto suficiente para um roteirista criar um vídeo envolvente
+- 2 a 4 frases com: gancho forte; detalhes específicos (fatos, números, locais, datas, personagens);
+- Indicar elementos visuais/emocionais (mistério, tensão, reviravolta, curiosidade) úteis para roteiro curto;
+- Não repetir o título no começo da descrição.
 
-💡 Exemplo de descrição BOA:
-"Em 2015, um avião desapareceu sem deixar rastros no meio do oceano. A investigação revelou que todos os passageiros sumiram antes do pouso, deixando apenas objetos pessoais. O mistério nunca foi resolvido, alimentando teorias sobre dimensões paralelas e sequestros extraterrestres. Este caso desperta medo, curiosidade e debate, elementos perfeitos para um vídeo viral."
-
-❌ Exemplo de descrição RUIM (muito genérica):
-"Um avião desapareceu e gerou mistério sobre o que aconteceu."
+Importante: Se houver variações do mesmo tópico no texto, escolha a forma exatamente mostrada como título principal em "Tópicos".
 
 Texto para análise:
 ---

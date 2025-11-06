@@ -1,0 +1,4 @@
+import pyautogui as teclado
+
+
+

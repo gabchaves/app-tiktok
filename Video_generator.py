@@ -61,6 +61,7 @@ if roteiro:
     print("📋 Roteiro copiado para área de transferência!")
     
     # Abre o aplicativo CapCut
+    teclado.sleep(5)
     teclado.hotkey('win', 'r')
     teclado.typewrite('https://www.capcut.com/ai-creator/start')
     teclado.press('enter')
