@@ -190,7 +190,7 @@ def salvar_planilha(response_text):
         print(f"❌ Erro ao salvar planilha: {e}")
 
 
-def gerar_temas_tiktok_studio(tipo_tema='atualidades', api_key=None):
+def gerar_temas_tiktok_studio(tipo_tema='atualidades', quantidade_temas=3, api_key=None):
     """
     Gera temas usando o TikTok Studio.
     
@@ -249,7 +249,7 @@ def gerar_temas_tiktok_studio(tipo_tema='atualidades', api_key=None):
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
 
-        prompt = f"""Analise o texto a seguir (copiado da página de Inspiração do TikTok Studio) e identifique exatamente os 3 TÓPICOS mais relevantes.
+        prompt = f"""Analise o texto a seguir (copiado da página de Inspiração do TikTok Studio) e identifique exatamente os {quantidade_temas} TÓPICOS mais relevantes.
 
 REGRA CRÍTICA PARA O CAMPO "tema":
 - O valor de "tema" DEVE SER COPIADO LITERALMENTE de como aparece no texto do TikTok.
@@ -260,9 +260,7 @@ REGRA CRÍTICA PARA O CAMPO "tema":
 Formato de saída (retorne somente o JSON, sem texto extra):
 {{
   "top_themes": [
-    {{"tema": "TÍTULO EXATO DO TÓPICO", "descricao": "explicação", "relevancia": "alta|média|baixa"}},
-    {{"tema": "TÍTULO EXATO DO TÓPICO", "descricao": "explicação", "relevancia": "alta|média|baixa"}},
-    {{"tema": "TÍTULO EXATO DO TÓPICO", "descricao": "explicação", "relevancia": "alta|média|baixa"}}
+    {{"tema": "TÍTULO EXATO DO TÓPICO", "descricao": "explicação", "relevancia": "alta|média|baixa"}}{',\n    {{"tema": "TÍTULO EXATO DO TÓPICO", "descricao": "explicação", "relevancia": "alta|média|baixa"}}' * (quantidade_temas - 1)}
   ]
 }}
 
@@ -313,6 +311,16 @@ if __name__ == "__main__":
     else:
         tipo_tema = "terror"
 
-    gerar_temas_tiktok_studio(tipo_tema)
+    quantidade_temas_str = input("Digite a quantidade de temas a serem gerados (padrão: 3): ").strip()
+    if not quantidade_temas_str:
+        quantidade_temas_str = "3" # Valor padrão
+
+    while not quantidade_temas_str.isdigit() or int(quantidade_temas_str) <= 0:
+        print("⚠️ Quantidade inválida. Digite um número inteiro positivo.")
+        quantidade_temas_str = input("Digite a quantidade de temas a serem gerados (padrão: 3): ").strip()
+        if not quantidade_temas_str:
+            quantidade_temas_str = "3" # Valor padrão
+
+    gerar_temas_tiktok_studio(tipo_tema, quantidade_temas=int(quantidade_temas_str))
     print("\n✅ Processo concluído.")
 

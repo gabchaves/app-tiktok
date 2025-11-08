@@ -84,6 +84,7 @@ Descrição: {descricao}
    - Mantenha um clima cinematográfico e envolvente, como um mini documentário.
    - Pode ser sombrio, inspirador ou místico dependendo do tema.
    - Transmita credibilidade, mesmo quando o conteúdo for misterioso.
+   - Se o tema for sobre uma noticia neutra ou não muito interessante, invente algo para criar suspense e curiosidade.
 
 4. **Conclusão / Chamada para ação:**
    - Termine com um fecho forte, que incentive o engajamento:
