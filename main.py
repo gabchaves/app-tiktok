@@ -327,32 +327,51 @@ def garantir_temas_suficientes(quantidade_necessaria):
         print(f"✅ Temas suficientes!")
         return True
     
-    print(f"\n⚠️ Faltam temas. Usando Tema Generator do TikTok Studio...")
-    print("\n🔍 Escolha o tipo de tema:")
-    print("1 - Atualidades")
-    print("2 - Terror")
+    print(f"\n⚠️ Faltam temas. É necessário gerar novos temas.")
+    print("\n🔍 Escolha o tipo de tema para gerar:")
+    print("1 - Atualidades (via TikTok Studio)")
+    print("2 - Terror (via TikTok Studio)")
+    print("3 - Lenda Urbana (via API Gemini)")
+    print("4 - Espiritualidade (via API Gemini)")
     escolha = input("Digite o número da opção: ").strip()
     
-    while escolha not in ['1', '2']:
-        print("⚠️ Opção inválida. Digite 1 para Atualidades ou 2 para Terror.")
+    while escolha not in ['1', '2', '3', '4']:
+        print("⚠️ Opção inválida. Digite 1, 2, 3 ou 4.")
         escolha = input("Digite o número da opção: ").strip()
     
     if escolha == '1':
         tipo_tema = "atualidades"
-    else:
+    elif escolha == '2':
         tipo_tema = "terror"
+    elif escolha == '3':
+        tipo_tema = "lenda urbana"
+    else:
+        tipo_tema = "espiritualidade"
     
+    # Pergunta a quantidade de temas a gerar
+    quantidade_a_gerar_str = input(f"Quantos temas de '{tipo_tema}' você quer gerar? (padrão: 3): ").strip()
+    if not quantidade_a_gerar_str:
+        quantidade_a_gerar_str = "3"
+        
+    while not quantidade_a_gerar_str.isdigit() or int(quantidade_a_gerar_str) <= 0:
+        print("⚠️ Quantidade inválida. Digite um número inteiro positivo.")
+        quantidade_a_gerar_str = input(f"Quantos temas de '{tipo_tema}' você quer gerar? (padrão: 3): ").strip()
+        if not quantidade_a_gerar_str:
+            quantidade_a_gerar_str = "3"
+            
+    quantidade_a_gerar = int(quantidade_a_gerar_str)
+
     # Executa o Tema Generator
-    sucesso = gerar_temas_tiktok_studio(tipo_tema, GEMINI_API_KEY)
+    sucesso = gerar_temas_tiktok_studio(tipo_tema, quantidade_temas=quantidade_a_gerar, api_key=GEMINI_API_KEY)
     
     if sucesso:
         temas_sem_roteiro = contar_temas_sem_roteiro()
         print(f"✅ Agora temos {temas_sem_roteiro} tema(s) disponíveis.")
         
-        # Se ainda não tem temas suficientes, tenta gerar mais com a API
+        # Se ainda não tem temas suficientes, tenta gerar mais com a API (genérica)
         if temas_sem_roteiro < quantidade_necessaria:
             falta = quantidade_necessaria - temas_sem_roteiro
-            print(f"\n⚠️ Ainda faltam {falta} tema(s). Gerando temas via API...")
+            print(f"\n⚠️ Ainda faltam {falta} tema(s). Gerando mais temas genéricos via API...")
             
             temas_gerados = gerar_temas_automaticos(falta)
             if temas_gerados:
